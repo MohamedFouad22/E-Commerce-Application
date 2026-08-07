@@ -7,8 +7,12 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { HProductDocument, Product } from '../DB/Models/product.model';
-import { Model } from 'mongoose';
-import { ICreateProductDTO } from './dto/product.dto';
+import { Model, Types } from 'mongoose';
+import {
+  ICreateProductDTO,
+  IUpdateProductDTO,
+  IUpdateProductParamsDTO,
+} from './dto/product.dto';
 import { HUserDocument, User } from '../DB/Models/user.model';
 import { Category, HCategoryDocument } from '../DB/Models/category.model';
 import { Brand, HBrandDocument } from '../DB/Models/brand.model';
@@ -78,7 +82,7 @@ export class ProductsService {
     return { message: 'Get All Product Successfully', products };
   }
 
-  async findOne(id: string) {
+  async getSpecificProduct(id: string) {
     const product = await this.productModel.findOne({
       _id: id,
     });
@@ -86,10 +90,62 @@ export class ProductsService {
     return { message: 'Get Specific Product Successfully', product };
   }
 
-  update(id: number) {
-    console.log();
+  async updateProduct(
+    productId: IUpdateProductParamsDTO,
+    body: IUpdateProductDTO,
+    req: any,
+  ) {
+    const {
+      name,
+      rate,
+      overview,
+      brand,
+      category,
+      originalPrice,
+      discountPercentage,
+      discountPrice,
+      stock,
+      soldItems,
+      images,
+    } = body;
 
-    return `This action updates a #${id} product`;
+    const checkUserAuth = await this.userModel.findOne({ _id: req.user.id });
+    if (!checkUserAuth) throw new UnauthorizedException('Missing Authorized');
+
+    const checkProduct = await this.productModel.findById({ _id: productId });
+    if (!checkProduct) throw new NotFoundException('Product Not Found');
+
+    if (brand) {
+      const checkBrand = await this.brandModel.findById(brand);
+      if (!checkBrand) throw new NotFoundException('Brand Not Found');
+    }
+
+    if (category) {
+      const checkCategory = await this.categoryModel.findById(category);
+      if (!checkCategory) throw new NotFoundException('Category Not Found');
+    }
+    const files = req.files as Express.Multer.File[];
+    const newImages = files?.map((file) => file.filename) || [];
+
+    const updateData = await this.productModel.findByIdAndUpdate(
+      { _id: productId },
+      {
+        name,
+        rate,
+        overview,
+        brand,
+        category,
+        originalPrice,
+        discountPercentage,
+        discountPrice,
+        stock,
+        soldItems,
+        images: newImages,
+      },
+    );
+    if (!updateData) throw new BadRequestException('Failed To Update Product');
+
+    return { message: 'Product Updated Successfully' };
   }
 
   remove(id: number) {

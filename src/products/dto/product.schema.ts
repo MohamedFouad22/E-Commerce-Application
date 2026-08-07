@@ -34,3 +34,29 @@ export const createProductSchema = {
       }
     }),
 };
+
+export const updateProductSchema = {
+  params: z.strictObject({
+    productId: z.string().refine((value) => {
+      Types.ObjectId.isValid(value);
+    }),
+  }),
+
+  body: z.strictObject({
+    name: z.string().trim().min(3).max(25).optional(),
+    rate: z.number().default(0).optional(),
+    overview: z.string().trim().min(3).max(5000).optional(),
+    brand: z.string().refine((value) => {
+      Types.ObjectId.isValid(value);
+    }),
+    category: z.string().refine((value) => {
+      Types.ObjectId.isValid(value);
+    }),
+    originalPrice: z.number().min(0).optional(),
+    discountPercentage: z.number().min(0).default(0).optional(),
+    discountPrice: z.number().min(0).optional(),
+    stock: z.number().min(0).default(0).optional(),
+    soldItems: z.number().min(0).default(0).optional(),
+    images: z.string().array(),
+  }),
+};

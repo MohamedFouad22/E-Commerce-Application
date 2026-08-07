@@ -11,7 +11,11 @@ import {
   Req,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import type { ICreateProductDTO } from './dto/product.dto';
+import type {
+  ICreateProductDTO,
+  IUpdateProductDTO,
+  IUpdateProductParamsDTO,
+} from './dto/product.dto';
 import { AuthGuardTsGuard } from '../common/guards/auth.guard';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import {
@@ -47,13 +51,29 @@ export class ProductsController {
   }
 
   @Get('/get-product/:id')
-  findOne(@Param('id') id: string) {
-    return this.productsService.findOne(id);
+  getSpecificProduct(@Param('id') id: string) {
+    return this.productsService.getSpecificProduct(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() body: any) {
-    return this.productsService.update(+id);
+  @Patch('/update-product/:productId')
+  @UseGuards(AuthGuardTsGuard)
+  @UseInterceptors(
+    FilesInterceptor(
+      'files',
+      5,
+      uploadLocalFile({
+        storageApproach: storageApproachEnum.DISK,
+        maxSize: 5,
+        fileValidation: validationTypeEnum.images,
+      }),
+    ),
+  )
+  updateProduct(
+    @Param('productId') productId: IUpdateProductParamsDTO,
+    @Body() body: IUpdateProductDTO,
+    @Req() req: any,
+  ) {
+    return this.productsService.updateProduct(productId, body, req);
   }
 
   @Delete(':id')

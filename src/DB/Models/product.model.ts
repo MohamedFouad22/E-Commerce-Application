@@ -26,6 +26,7 @@ export class Product {
 
   @Prop({
     type: Number,
+    default: 0,
   })
   rate!: number;
 
