@@ -13,7 +13,7 @@ export class Cart {
     unique: true,
     required: true,
   })
-  user!: Types.ObjectId;
+  userId!: Types.ObjectId;
 
   @Prop([
     {

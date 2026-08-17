@@ -12,6 +12,7 @@ import { BrandController } from './brand/brand.controller';
 import { BrandModule } from './brand/brand.module';
 import { CategoryModule } from './category/category.module';
 import { CouponModule } from './coupon/coupon.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { CouponModule } from './coupon/coupon.module';
     BrandModule,
     CategoryModule,
     CouponModule,
+    CartModule,
   ],
   controllers: [AppController, BrandController],
   providers: [AppService],
