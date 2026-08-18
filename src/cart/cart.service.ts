@@ -1,5 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { createCartDTO } from './dto/cart.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { createCartDTO, updateProductDTO } from './dto/cart.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cart } from '../DB/Models/cart.model';
 import { Model, Types } from 'mongoose';
@@ -63,15 +67,81 @@ export class CartService {
     return `This action returns all cart`;
   }
 
-  findOne() {
-    return `This action returns a  cart`;
+  async findCart(req: any) {
+    const cart = await this.cartModel
+      .findOne({ userId: req.user.id })
+      .populate({
+        path: 'items.productId',
+        select: 'name discountPrice stock',
+      });
+    if (!cart) throw new NotFoundException('Cart Not Found');
+
+    return { message: 'Find Cart Successfully', cart };
   }
 
-  update(id: number, updateCartDto: any) {
-    return `This action updates a #${id} cart`;
+  async updateCart(productId: string, body: updateProductDTO, req: any) {
+    const { quantity } = body;
+
+    if (quantity === undefined || typeof quantity !== 'number') {
+      throw new BadRequestException('Please provide a valid quantity');
+    }
+
+    const userId = req.user?.id || req.user?._id;
+    const cart = await this.cartModel.findOne({ userId });
+    if (!cart) throw new NotFoundException('Cart Not Found');
+
+    const itemIndex = cart.items.findIndex(
+      (item) => item.productId.toString() === productId,
+    );
+
+    if (itemIndex === -1) {
+      throw new NotFoundException('Product Not Found');
+    } else if (quantity <= 0) {
+      cart.items.splice(itemIndex, 1);
+    } else {
+      const item = cart.items[itemIndex];
+      item.quantity = quantity;
+      item.total = item.quantity * item.price;
+    }
+
+    cart.subTotal = cart.items.reduce((sum, item) => sum + item.total, 0);
+    await cart.save();
+
+    return { message: 'Updated Product Successfully', cart };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} cart`;
+  async clearCart(req: any) {
+    const userId = req.user.id;
+    const cart = await this.cartModel.findOneAndDelete({
+      userId,
+    });
+    if (!cart) throw new NotFoundException('Cart Not Found Or Failed To Clear');
+
+    return { message: 'Clear Cart Successfully' };
+  }
+
+  async removeFromCart(req: any, productId: string) {
+    const userId = req.user.id;
+    const cart = await this.cartModel.findOne({ userId });
+    if (!cart) throw new NotFoundException('Cart Not Found');
+
+    const itemIndex = cart.items.findIndex(
+      (item) => item.productId.toString() === productId,
+    );
+
+    if (itemIndex === -1) {
+      throw new NotFoundException('Product Not Found');
+    } else {
+      cart.items.splice(itemIndex, 1);
+    }
+
+    if (cart.items.length === 0) {
+      await this.cartModel.deleteOne({ userId });
+    } else {
+      cart.subTotal = cart.items.reduce((sum, item) => sum + item.total, 0);
+      await cart.save();
+    }
+
+    return { message: 'Remove Product Done Successfully' };
   }
 }

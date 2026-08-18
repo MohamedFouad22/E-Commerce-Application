@@ -12,3 +12,14 @@ export const createCartSchema = {
     quantity: z.number(),
   }),
 };
+
+export const updateCartSchema = {
+  param: z.strictObject({
+    productId: z.string().refine((value) => {
+      Types.ObjectId.isValid(value);
+    }),
+  }),
+  body: z.strictObject({
+    quantity: z.number(),
+  }),
+};

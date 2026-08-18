@@ -10,7 +10,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CartService } from './cart.service';
-import type { createCartDTO } from './dto/cart.dto';
+import type {
+  createCartDTO,
+  updateProductDTO,
+  updateProductParamDTO,
+} from './dto/cart.dto';
 import { AuthGuardTsGuard } from '../common/guards/auth.guard';
 
 @Controller('api/v1/cart')
@@ -28,18 +32,31 @@ export class CartController {
     return this.cartService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.cartService.findOne();
+  @Get('/get-cart')
+  @UseGuards(AuthGuardTsGuard)
+  findCart(@Req() req: any) {
+    return this.cartService.findCart(req);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCartDto: any) {
-    return this.cartService.update(+id, updateCartDto);
+  @Patch('/update-cart/:protucdId')
+  @UseGuards(AuthGuardTsGuard)
+  update(
+    @Param('protucdId') productId: string,
+    @Body() body: updateProductDTO,
+    @Req() req: any,
+  ) {
+    return this.cartService.updateCart(productId, body, req);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.cartService.remove(+id);
+  @Delete('/clear-cart')
+  @UseGuards(AuthGuardTsGuard)
+  clearCart(@Req() req: any) {
+    return this.cartService.clearCart(req);
+  }
+
+  @Delete('/remove-from-cart/:productId')
+  @UseGuards(AuthGuardTsGuard)
+  removeFromCart(@Req() req: any, @Param('productId') productId: string) {
+    return this.cartService.removeFromCart(req, productId);
   }
 }
