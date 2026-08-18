@@ -42,6 +42,6 @@ export type HCouponDocument = HydratedDocument<Coupon>;
 export const couponModel = MongooseModule.forFeature([
   {
     name: Coupon.name,
-    schema: Coupon,
+    schema: couponSchema,
   },
 ]);
