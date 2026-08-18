@@ -18,3 +18,16 @@ export enum SubjectEnum {
   CONFIRM_EMAIL = 'Please Confirm Your Email',
   RESET_PASSWORD = 'Reset Your Paasword',
 }
+
+export enum OrderStatusEnum {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  SHIPPED = 'SHIPPED',
+  DELIVERED = 'DELIVERED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum PaymentMethodEnum {
+  CASH = 'CASH',
+  CARD = 'CARD',
+}
