@@ -48,6 +48,12 @@ export class CartController {
     return this.cartService.updateCart(productId, body, req);
   }
 
+  @Post('/apply-coupon')
+  @UseGuards(AuthGuardTsGuard)
+  applyCoupon(@Req() req: any, @Body() body: { code: string }) {
+    return this.cartService.applyCoupon(req, body);
+  }
+
   @Delete('/clear-cart')
   @UseGuards(AuthGuardTsGuard)
   clearCart(@Req() req: any) {

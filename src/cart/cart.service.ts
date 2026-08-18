@@ -8,12 +8,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cart } from '../DB/Models/cart.model';
 import { Model, Types } from 'mongoose';
 import { Product } from '../DB/Models/product.model';
+import { Coupon } from '../DB/Models/coupon.model';
 
 @Injectable()
 export class CartService {
   constructor(
     @InjectModel(Cart.name) private cartModel: Model<Cart>,
     @InjectModel(Product.name) private productModel: Model<Product>,
+    @InjectModel(Coupon.name) private couponModel: Model<Coupon>,
   ) {}
 
   async addToCart(body: createCartDTO, req: any) {
@@ -143,5 +145,33 @@ export class CartService {
     }
 
     return { message: 'Remove Product Done Successfully' };
+  }
+
+  async applyCoupon(req: any, body: { code: string }) {
+    const { code } = body;
+    const userId = req.user.id || req.user._id;
+
+    const cart = await this.cartModel.findOne({ userId });
+    if (!cart) throw new NotFoundException('Cart Not Found');
+
+    const coupon = await this.couponModel.findOne({ code: code.toUpperCase() });
+    if (!coupon) throw new NotFoundException('Coupon Not Found');
+
+    if (coupon.expiresIn < new Date()) {
+      throw new BadRequestException('Coupon Expired');
+    }
+
+    const discount = (cart.subTotal * coupon.discount) / 100;
+    const totalAfterDiscount = cart.subTotal - discount;
+
+    cart.coupon = coupon._id;
+
+    cart.discount = discount;
+
+    cart.priceAfterDiscount = totalAfterDiscount;
+
+    await cart.save();
+
+    return { message: 'Coupon Applied Successfully' };
   }
 }
