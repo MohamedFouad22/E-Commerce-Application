@@ -12,6 +12,8 @@ import {
 import { OrderService } from './order.service';
 import type { createOrderDTO } from './dto/order.dto';
 import { AuthGuardTsGuard } from '../common/guards/auth.guard';
+import { Types } from 'mongoose';
+import type { HUserDocument } from '../DB/Models/user.model';
 
 @Controller('/api/v1/order')
 export class OrderController {
@@ -21,6 +23,17 @@ export class OrderController {
   @UseGuards(AuthGuardTsGuard)
   createOrder(@Body() body: createOrderDTO, @Req() req: any) {
     return this.orderService.createOrder(body, req);
+  }
+
+  @Post('/create-session/:orderId')
+  @UseGuards(AuthGuardTsGuard)
+  async createSession(
+    @Param('orderId') orderId: Types.ObjectId,
+    @Req() req: any,
+    user: HUserDocument,
+  ) {
+    const session = await this.orderService.createSession(orderId, req, user);
+    return session;
   }
 
   @Get()

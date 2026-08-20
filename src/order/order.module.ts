@@ -6,10 +6,11 @@ import { cartModel } from '../DB/Models/cart.model';
 import { couponModel } from '../DB/Models/coupon.model';
 import { JwtModule } from '@nestjs/jwt';
 import { orderModel } from '../DB/Models/order.model';
+import { PaymentService } from '../common/services/payment/payment.service';
 
 @Module({
   imports: [userModel, cartModel, couponModel, orderModel, JwtModule],
   controllers: [OrderController],
-  providers: [OrderService],
+  providers: [OrderService, PaymentService],
 })
 export class OrderModule {}
